@@ -10,10 +10,15 @@ class rvm::passenger::apache::centos::post(
   $gempath,
   $binpath
 ) {
+  if $version >= '4.0.0' { $passenger_subdir = 'buildout' }
+  elsif $version >= '3.9.0' { $passenger_subdir = 'libout' }
+  else { $passenger_subdir = 'ext' }
+
   exec {
     'passenger-install-apache2-module':
+      environment => ["HOME=/tmp"],
       command   => "${rvm::passenger::apache::binpath}rvm ${rvm::passenger::apache::ruby_version} exec passenger-install-apache2-module -a",
-      creates   => "${rvm::passenger::apache::gempath}/passenger-${rvm::passenger::apache::version}/ext/apache2/mod_passenger.so",
+      creates   => "${rvm::passenger::apache::gempath}/passenger-${rvm::passenger::apache::version}/${passenger_subdir}/apache2/mod_passenger.so",
       logoutput => 'on_failure',
       require   => [Rvm_gem['passenger'], Package['httpd','httpd-devel','mod_ssl']];
   }
